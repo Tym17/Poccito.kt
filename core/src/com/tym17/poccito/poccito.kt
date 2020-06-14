@@ -1,31 +1,24 @@
 package com.tym17.poccito
 
-import com.badlogic.gdx.ApplicationAdapter
-import com.badlogic.gdx.Gdx
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.tym17.poccito.screens.MainMenuScreen
+import ktx.app.KtxGame
+import ktx.app.KtxScreen
 
-class poccito : com.badlogic.gdx.Game() {
-    lateinit internal var batch: SpriteBatch;
-    lateinit internal var font: BitmapFont;
+class poccito : KtxGame<KtxScreen>() {
+    val batch  by lazy { SpriteBatch() }
+    val font by lazy { BitmapFont() }
 
     override fun create() {
-        batch = SpriteBatch();
-        font = BitmapFont();
-        this.setScreen(MainMenuScreen(this));
-    }
-
-    override fun render() {
-        super.render();
+        addScreen(MainMenuScreen(this))
+        setScreen<MainMenuScreen>()
+        super.create()
     }
 
     override fun dispose() {
-        this.getScreen().dispose();
-
-        batch.dispose();
-        font.dispose();
+        batch.dispose()
+        font.dispose()
+        super.dispose()
     }
 }
