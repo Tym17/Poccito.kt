@@ -13,6 +13,9 @@ import com.tym17.poccito.poccito
 import ktx.app.KtxScreen
 import ktx.collections.iterate
 import ktx.graphics.use
+import ktx.log.logger
+
+private val log = logger<GameScreen>()
 
 class GameScreen(val game: poccito) : KtxScreen {
     private val dropImage = Texture(Gdx.files.internal("images/drop.png"))
@@ -74,8 +77,10 @@ class GameScreen(val game: poccito) : KtxScreen {
         //    effect also
         raindrops.iterate { raindrop, iterator ->
             raindrop.y -= 200 * delta
-            if (raindrop.y + 64 < 0)
+            if (raindrop.y + 64 < 0) {
                 iterator.remove()
+                log.debug { "Missed a raindrop" }
+            }
             if (raindrop.overlaps(bucket)) {
                 dropsGathered++
                 iterator.remove()
@@ -88,6 +93,7 @@ class GameScreen(val game: poccito) : KtxScreen {
     }
 
     override fun dispose() {
+        log.debug { "Disposing ${this.javaClass.simpleName}" }
         dropImage.dispose()
         bucketImage.dispose()
     }
