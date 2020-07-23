@@ -32,7 +32,7 @@ class ProtocolHandler(ip: String, port: Int, _name: String) {
     var scanner = Scanner(clientSocket.inputStream)
 
     fun move(where: String) {
-
+        clientSocket.outputStream.write("MV $where\u0000".toByteArray())
     }
 
     fun receive() {
@@ -61,6 +61,7 @@ class ProtocolHandler(ip: String, port: Int, _name: String) {
     }
 
     fun disconnect() {
+        clientSocket.outputStream.write("QUIT $myId\u0000".toByteArray())
         clientSocket.close()
     }
 }

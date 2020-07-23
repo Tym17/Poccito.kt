@@ -21,7 +21,6 @@ class GameScreen(val game: poccito) : KtxScreen {
     // The camera ensures we can render using our target resolution of 800x480
     //    pixels no matter what the screen resolution is.
     private val camera = OrthographicCamera().apply { setToOrtho(false, 800f, 480f) }
-    private val bucket = Rectangle(800f /2f - 64f / 2f, 20f, 64f, 64f)
     private val players = Array<Entity>()
     private val npcs = Array<Entity>()
     private var protocol = ProtocolHandler("localhost", 20117, "kotlin")
@@ -29,9 +28,6 @@ class GameScreen(val game: poccito) : KtxScreen {
     override fun render(delta: Float) {
         // generally good practice to update the camera's matrices once per frame
         camera.update()
-        players.add(Entity(50, 50, 50, "steve"))
-        npcs.add(Entity(50, 200, 50, "stessve"))
-        players.add(Entity(50, 50, 150, "stevzzze"))
 
         // tell the SpriteBatch to render in the coordinate system specified by the camera.
         game.batch.projectionMatrix = camera.combined
@@ -57,13 +53,35 @@ class GameScreen(val game: poccito) : KtxScreen {
             protocol.move(protocol.P_RIGHT)
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            protocol.move(protocol.P_DOWN)
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             protocol.move(protocol.P_UP)
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+            protocol.move(protocol.P_DOWN)
+        }
         protocol.receive()
-        while (protocol.haveCmds() && false) {
+        while (protocol.haveCmds()) {
+            val cmd = protocol.extract().split(' ')
+
+            when (cmd[0]) {
+                "NEW" -> players.add(Entity(cmd[1].toInt(), cmd[2].toInt(), cmd[3].toInt(), cmd[4]))
+                "NPC" -> npcs.add(Entity(cmd[1].toInt(), cmd[2].toInt(), cmd[3].toInt(), cmd[4]))
+                "PPOS" -> {
+                    players.forEach { player ->
+                        if (player.id == cmd[1].toInt()) {
+                            player.x = cmd[2].toInt()
+                            player.y = cmd[3].toInt()
+                        }
+                    }
+                }
+                "NPOS" -> {
+                    npcs.forEach { npc ->
+                        if (npc.id == cmd[1].toInt()) {
+                            npc.x = cmd[2].toInt()
+                            npc.y = cmd[3].toInt()
+                        }
+                    }
+                }
+            }
         }
 
     }
