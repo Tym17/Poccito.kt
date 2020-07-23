@@ -9,6 +9,8 @@ object DesktopLauncher {
     @JvmStatic
     fun main(arg: Array<String>) {
         val config = LwjglApplicationConfiguration()
+        config.height = 480
+        config.width = 800
         LwjglApplication(poccito(), config).logLevel = Application.LOG_DEBUG
 
     }

@@ -16,7 +16,7 @@ class MainMenuScreen(val game: poccito) : KtxScreen {
         game.batch.projectionMatrix = camera.combined
 
         game.batch.use {
-            game.font.draw(game.batch, "Welcome to the Drop", 100f, 150f)
+            game.font.draw(game.batch, "Welcome to Poccito, Kotlin edition", 100f, 150f)
             game.font.draw(game.batch, "Tap anywhere to begin", 100f, 100f)
         }
 
