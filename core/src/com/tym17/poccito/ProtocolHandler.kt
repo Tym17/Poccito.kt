@@ -1,10 +1,11 @@
 package com.tym17.poccito
 
-import com.tym17.poccito.screens.GameScreen
 import ktx.log.logger
 import java.net.Socket
 import java.util.*
 import com.badlogic.gdx.utils.Array
+import kotlinx.coroutines.sync.*
+import kotlinx.coroutines.*
 
 private val log = logger<ProtocolHandler>()
 
@@ -19,6 +20,7 @@ class ProtocolHandler(ip: String, port: Int, _name: String) {
     var myId = -1
     val commands = Array<String>()
     val name = _name
+    val mutex = Mutex()
 
     init {
         if (clientSocket.isConnected) {
@@ -36,28 +38,48 @@ class ProtocolHandler(ip: String, port: Int, _name: String) {
     }
 
     fun receive() {
-        var maxMsgs = 0
-        while (scanner.hasNextLine() && maxMsgs++ < P_MAX_QUEUE) {
-            var cmd = scanner.nextLine()
-            log.debug { "Received '$cmd'" }
-            if (myId == -1) {
-                val detailedCmd = cmd.split(' ')
-                if (detailedCmd[0] == "HELLO") {
-                    myId = detailedCmd[1].toInt()
-                    log.debug { "My id is now $myId" }
-                    cmd = "NEW $myId ${detailedCmd[2]} ${detailedCmd[3]} $name"
+        GlobalScope.launch {
+            if (scanner.hasNextLine()) {
+                var cmd = scanner.nextLine()
+                log.debug { "Received '$cmd'" }
+                if (myId == -1) {
+                    val detailedCmd = cmd.split(' ')
+                    if (detailedCmd[0] == "HELLO") {
+                        mutex.withLock {
+                            myId = detailedCmd[1].toInt()
+                        }
+                        log.debug { "My id is now $myId" }
+                        cmd = "NEW $myId ${detailedCmd[2]} ${detailedCmd[3]} $name"
+
+                    }
+                }
+                mutex.withLock {
+                    commands.add(cmd)
                 }
             }
-            commands.add(cmd)
         }
     }
 
     fun haveCmds(): Boolean {
-        return !commands.isEmpty
+        var ret = false
+        runBlocking {
+            if (mutex.tryLock()) {
+                ret = !commands.isEmpty
+                mutex.unlock()
+            }
+        }
+        return ret
     }
 
     fun extract(): String {
-        return commands.pop()
+        var ret = "NULL"
+        runBlocking {
+            if (mutex.tryLock()) {
+                ret = commands.pop()
+                mutex.unlock()
+            }
+        }
+        return ret
     }
 
     fun disconnect() {
